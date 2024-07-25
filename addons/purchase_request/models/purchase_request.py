@@ -9,7 +9,7 @@ _STATES = [
     ("to_approve", "To be approved"),
     ("approved", "Approved"),
     ("rejected", "Rejected"),
-    ("done", "Done"),
+    ("done", "Archived"),
 ]
 
 
@@ -55,7 +55,7 @@ class PurchaseRequest(models.Model):
     name = fields.Char(
         string="Request Reference",
         required=True,
-        default=lambda self: _("Code"),
+        default=lambda self: _("PR Code"),
         tracking=True,
         readonly=True,
     )

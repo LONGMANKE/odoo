@@ -109,7 +109,6 @@
                             name="name"
                             class="oe_inline"
                             readonly="1"
-
                         />
                     </h1>
                     <group>
@@ -382,5 +381,4 @@
         parent="purchase.menu_procurement_management"
         action="purchase_request_form_action"
     />
-
 </odoo>
