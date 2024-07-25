@@ -637,7 +637,9 @@
                     decoration-info="invoice_status == 'to invoice'"
                     string="Purchase Order"
                     class="o_purchase_order"
-                    sample="1">
+                    sample="1"
+                      create="0"
+                >
                     <header>
                         <button name="action_create_invoice" type="object" string="Create Bills"/>
                     </header>
