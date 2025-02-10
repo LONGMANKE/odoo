@@ -77,14 +77,15 @@ class PurchaseOrder(models.Model):
     name = fields.Char('Order Reference', required=True, index='trigram', copy=False, default='New')
     priority = fields.Selection(
         [('0', 'Normal'), ('1', 'Urgent')], 'Priority', default='0', index=True)
-    origin = fields.Char('Source RFQ', copy=False,
-        help="Reference of the RFQ that generated this purchase order")
+    origin = fields.Char('Source Document', copy=False,
+        help="Reference of the document that generated this purchase order "
+             "request (e.g. a sales order)")
     partner_ref = fields.Char('Vendor Reference', copy=False,
         help="Reference of the sales order or bid sent by the vendor. "
              "It's used to do the matching when you receive the "
              "products as this reference is usually written on the "
              "delivery order sent by your vendor.")
-    date_order = fields.Datetime('Order Deadline', required=False, index=True, copy=False, default=fields.Datetime.now,
+    date_order = fields.Datetime('Order Deadline', required=True, index=True, copy=False, default=fields.Datetime.now,
         help="Depicts the date within which the Quotation should be confirmed and converted into a purchase order.")
     date_approve = fields.Datetime('Confirmation Date', readonly=True, index=True, copy=False)
     partner_id = fields.Many2one('res.partner', string='Vendor', required=True, change_default=True, tracking=True, domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", help="You can find a vendor by its Name, TIN, Email or Internal Reference.")
@@ -147,7 +148,6 @@ class PurchaseOrder(models.Model):
 
     receipt_reminder_email = fields.Boolean('Receipt Reminder Email', compute='_compute_receipt_reminder_email')
     reminder_date_before_receipt = fields.Integer('Days Before Receipt', compute='_compute_receipt_reminder_email')
-    source_pr = fields.Char(string='Source PR')
 
     @api.constrains('company_id', 'order_line')
     def _check_order_line_company_id(self):
@@ -480,36 +480,8 @@ class PurchaseOrder(models.Model):
         self.filtered(lambda p: p.company_id.po_lock == 'lock').write({'state': 'done'})
         return {}
 
-    # def button_draft(self):
-    #     self.write({'state': 'draft'})
-    #     return {}
     def button_draft(self):
-        rfq_id = False
-        for po in self:
-            # Check if the origin field has the reference to the RFQ
-            if po.origin:
-                rfq = self.env['purchase.rfq'].search([('name', '=', po.origin)], limit=1)
-                if rfq:
-                    # Set the state of the RFQ to 'draft'
-                    rfq.write({'state': 'draft'})
-                    rfq.write({'po_created': ''})
-                    rfq_id = rfq.id
-
-            # Delete the current Purchase Order record
-            po.unlink()
-
-        if rfq_id:
-            # Return an action to open the RFQ form view
-            action = {
-                'type': 'ir.actions.act_window',
-                'name': 'Request for Quotation',
-                'res_model': 'purchase.rfq',
-                'view_mode': 'form',
-                'res_id': rfq_id,
-                'target': 'current',
-            }
-            return action
-
+        self.write({'state': 'draft'})
         return {}
 
     def button_confirm(self):
